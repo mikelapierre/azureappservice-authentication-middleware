@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -7,12 +9,18 @@ using System.Net;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Security.Principal;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 
 namespace Middleware.Authentication.AppService
 {
     public class AzureAppServiceAuthenticationHandler : AuthenticationHandler<AzureAppServiceAuthenticationOptions>
     {
+        public AzureAppServiceAuthenticationHandler(IOptionsMonitor<AzureAppServiceAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder, IDataProtectionProvider dataProtection, ISystemClock clock)
+            : base(options, logger, encoder, clock)
+
+        { }
+
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
             Logger.LogInformation("starting authentication handler for app service authentication");
@@ -63,7 +71,7 @@ namespace Middleware.Authentication.AppService
                         if (!response.IsSuccessStatusCode)
                         {
                             Logger.LogDebug("auth endpoint was not sucessful. Status code: {0}, reason {1}", response.StatusCode, response.ReasonPhrase);
-                            return AuthenticateResult.Fail("Unable to fetch user information from auth endpoint.");
+                            return HandleRequestResult.Fail("Unable to fetch user information from auth endpoint.");
                         }
 
                         var content = await response.Content.ReadAsStringAsync();
@@ -78,7 +86,7 @@ namespace Middleware.Authentication.AppService
 
                 if(payload == null)
                 {
-                    return AuthenticateResult.Fail("Could not retreive json from /me endpoint.");
+                    return HandleRequestResult.Fail("Could not retreive json from /me endpoint.");
                 }
 
                 //build up identity from json...
@@ -106,20 +114,18 @@ namespace Middleware.Authentication.AppService
 
                 ClaimsPrincipal p = new GenericPrincipal(identity, null); //todo add roles?
 
-                var ticket = new AuthenticationTicket(p,
-                    new Microsoft.AspNetCore.Http.Authentication.AuthenticationProperties(),
-                    Options.AuthenticationScheme);
+                var ticket = new AuthenticationTicket(p, new AuthenticationProperties(), this.Scheme.Name);
 
                 Logger.LogInformation("Set identity to user context object.");
                 this.Context.User = p;
 
                 Logger.LogInformation("identity build was a success, returning ticket");
-                return AuthenticateResult.Success(ticket);
+                return HandleRequestResult.Success(ticket);
 
             }
 
             Logger.LogInformation("identity already set, skipping middleware");
-            return AuthenticateResult.Skip();           
+            return HandleRequestResult.SkipHandler();        
         }
     }
 }

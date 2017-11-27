@@ -5,20 +5,15 @@ namespace Middleware.Authentication.AppService
 {
     public static class AzureAppServiceAuthenticationAppBuilderExtensions
     {
-
         /// <summary>
         /// 
         /// </summary>
         /// <param name="app"></param>
         /// <returns></returns>
+        [Obsolete("UseAzureAppServiceAuthentication is obsolete. Configure AzureAppService authentication with AddAuthentication().AddAzureAppService in ConfigureServices. See https://go.microsoft.com/fwlink/?linkid=845470 for more details.", error: true)]
         public static IApplicationBuilder UseAzureAppServiceAuthentication(this IApplicationBuilder app)
         {
-            if (app == null)
-            {
-                throw new ArgumentNullException(nameof(app));
-            }
-
-            return app.UseMiddleware<AuzreAppServiceAuthenticationMiddleware>();
+            throw new NotSupportedException("This method is no longer supported, see https://go.microsoft.com/fwlink/?linkid=845470");
         }
 
         /// <summary>
@@ -27,18 +22,10 @@ namespace Middleware.Authentication.AppService
         /// <param name="app"></param>
         /// <param name="options"></param>
         /// <returns></returns>
+        [Obsolete("UseAzureAppServiceAuthentication is obsolete. Configure AzureAppService authentication with AddAuthentication().AddAzureAppService in ConfigureServices. See https://go.microsoft.com/fwlink/?linkid=845470 for more details.", error: true)]
         public static IApplicationBuilder UseAzureAppServiceAuthentication(this IApplicationBuilder app, AzureAppServiceAuthenticationOptions options)
         {
-            if (app == null)
-            {
-                throw new ArgumentNullException(nameof(app));
-            }
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
-            return app.UseMiddleware<AuzreAppServiceAuthenticationMiddleware>(options);
+            throw new NotSupportedException("This method is no longer supported, see https://go.microsoft.com/fwlink/?linkid=845470");
         }
     }
 }
